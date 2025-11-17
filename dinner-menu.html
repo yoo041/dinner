@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 저녁 메뉴 추천</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        const menuDatabase = [
+            { name: '김치찌개', category: '한식', spicy: 3, time: 30, people: 2 },
+            { name: '된장찌개', category: '한식', spicy: 1, time: 25, people: 2 },
+            { name: '삼겹살', category: '한식', spicy: 1, time: 20, people: 3 },
+            { name: '불고기', category: '한식', spicy: 1, time: 40, people: 3 },
+            { name: '비빔밥', category: '한식', spicy: 2, time: 15, people: 1 },
+            { name: '갈비탕', category: '한식', spicy: 1, time: 120, people: 2 },
+            { name: '순두부찌개', category: '한식', spicy: 3, time: 20, people: 2 },
+            { name: '제육볶음', category: '한식', spicy: 4, time: 25, people: 2 },
+            { name: '떡볶이', category: '분식', spicy: 4, time: 15, people: 2 },
+            { name: '김밥', category: '분식', spicy: 0, time: 30, people: 2 },
+            { name: '라면', category: '분식', spicy: 2, time: 10, people: 1 },
+            { name: '우동', category: '일식', spicy: 0, time: 15, people: 1 },
+            { name: '돈카츠', category: '일식', spicy: 0, time: 30, people: 1 },
+            { name: '초밥', category: '일식', spicy: 0, time: 40, people: 2 },
+            { name: '규동', category: '일식', spicy: 0, time: 20, people: 1 },
+            { name: '짜장면', category: '중식', spicy: 0, time: 20, people: 1 },
+            { name: '짬뽕', category: '중식', spicy: 3, time: 25, people: 1 },
+            { name: '탕수육', category: '중식', spicy: 0, time: 35, people: 3 },
+            { name: '마라탕', category: '중식', spicy: 5, time: 15, people: 1 },
+            { name: '파스타', category: '양식', spicy: 1, time: 30, people: 1 },
+            { name: '스테이크', category: '양식', spicy: 0, time: 40, people: 2 },
+            { name: '피자', category: '양식', spicy: 0, time: 25, people: 3 },
+            { name: '리조또', category: '양식', spicy: 0, time: 35, people: 2 },
+            { name: '햄버거', category: '양식', spicy: 0, time: 15, people: 1 },
+            { name: '샐러드', category: '양식', spicy: 0, time: 10, people: 1 },
+            { name: '치킨', category: '한식', spicy: 2, time: 30, people: 3 },
+            { name: '쌈밥', category: '한식', spicy: 1, time: 25, people: 2 },
+            { name: '칼국수', category: '한식', spicy: 1, time: 20, people: 2 },
+            { name: '냉면', category: '한식', spicy: 2, time: 15, people: 1 },
+            { name: '삼계탕', category: '한식', spicy: 0, time: 90, people: 1 }
+        ];
+
+        const reasons = [
+            '오늘은 이 메뉴가 딱이에요!',
+            '기분 전환하기 좋은 메뉴입니다.',
+            '에너지 충전이 필요한 날이네요.',
+            '특별한 하루를 만들어줄 메뉴예요.',
+            '맛있는 저녁으로 하루를 마무리하세요.',
+            '오늘따라 생각나는 메뉴네요.',
+            '건강과 맛을 동시에 잡을 수 있어요.',
+            '행복한 식사 시간을 약속합니다.',
+            '기분 좋은 저녁을 위한 선택이에요.',
+            '오늘의 베스트 초이스입니다!'
+        ];
+
+        const tips = [
+            '신선한 재료를 사용하면 더 맛있어요.',
+            '가족과 함께 먹으면 더 행복해집니다.',
+            '천천히 음미하며 드세요.',
+            '좋은 음악과 함께하면 금상첨화!',
+            '맛있게 드시고 좋은 하루 되세요.',
+            '배달도 좋지만 직접 만들어보는 것도 추천해요.',
+            '적당한 양을 드시는 것이 좋아요.',
+            '식사 후 가벼운 산책을 추천드려요.',
+            '정성스럽게 준비하면 더 맛있답니다.',
+            '좋은 사람들과 함께하면 최고예요!'
+        ];
+
+        let birthYear = '';
+        let recommendation = null;
+
+        function generateRecommendation(year) {
+            const today = new Date();
+            const seed = parseInt(year) + today.getDate() + today.getMonth() + today.getFullYear();
+            
+            function random(min, max) {
+                const x = Math.sin(seed * (min + max + 1)) * 10000;
+                return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
+            }
+
+            const mainIndex = random(0, menuDatabase.length - 1);
+            let sideIndex = random(0, menuDatabase.length - 1);
+            while (sideIndex === mainIndex) {
+                sideIndex = random(0, menuDatabase.length - 1);
+            }
+
+            const mainMenu = menuDatabase[mainIndex];
+            const sideMenu = menuDatabase[sideIndex];
+            const reason = reasons[random(0, reasons.length - 1)];
+            const tip = tips[random(0, tips.length - 1)];
+            const score = random(85, 100);
+
+            return {
+                main: mainMenu,
+                side: sideMenu,
+                reason: reason,
+                tip: tip,
+                score: score
+            };
+        }
+
+        function handleSubmit() {
+            if (birthYear && birthYear >= 1900 && birthYear <= 2024) {
+                recommendation = generateRecommendation(birthYear);
+                render();
+            } else {
+                alert('올바른 출생년도를 입력해주세요 (1900-2024)');
+            }
+        }
+
+        function handleReset() {
+            birthYear = '';
+            recommendation = null;
+            render();
+        }
+
+        function renderStars(level) {
+            let stars = '';
+            for (let i = 0; i < 5; i++) {
+                if (i < level) {
+                    stars += '<span class="text-red-500">🔥</span>';
+                } else {
+                    stars += '<span class="text-gray-300">🔥</span>';
+                }
+            }
+            return stars;
+        }
+
+        function render() {
+            const today = new Date().toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+
+            const app = document.getElementById('app');
+
+            if (!recommendation) {
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gradient-to-br from-orange-400 via-red-300 to-pink-300 p-4 md:p-8">
+                        <div class="max-w-2xl mx-auto">
+                            <div class="bg-white rounded-3xl shadow-2xl p-8 mb-6">
+                                <div class="text-center mb-8">
+                                    <div class="text-6xl mb-4">🍽️</div>
+                                    <h1 class="text-4xl font-bold text-gray-800 mb-2">오늘의 저녁 메뉴</h1>
+                                    <p class="text-gray-600">${today}</p>
+                                </div>
+
+                                <div class="space-y-6">
+                                    <div>
+                                        <label class="block text-lg font-semibold text-gray-700 mb-3">
+                                            출생년도를 입력하세요
+                                        </label>
+                                        <input
+                                            type="number"
+                                            id="birthYearInput"
+                                            placeholder="예: 1990"
+                                            class="w-full px-6 py-4 text-lg border-2 border-orange-200 rounded-xl focus:outline-none focus:border-orange-400 transition"
+                                            min="1900"
+                                            max="2024"
+                                            value="${birthYear}"
+                                        />
+                                    </div>
+                                    <button
+                                        onclick="handleSubmit()"
+                                        class="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold py-4 px-6 rounded-xl hover:from-orange-600 hover:to-red-600 transform hover:scale-105 transition duration-200 shadow-lg"
+                                    >
+                                        메뉴 추천받기
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p class="text-center text-white text-sm opacity-80">
+                                🍽️ 맛있는 저녁 되세요! 🍽️
+                            </p>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('birthYearInput').addEventListener('input', (e) => {
+                    birthYear = e.target.value;
+                });
+
+                document.getElementById('birthYearInput').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        handleSubmit();
+                    }
+                });
+            } else {
+                const spicyText = recommendation.main.spicy === 0 ? '안 매워요' : 
+                                 recommendation.main.spicy <= 2 ? '살짝 매워요' :
+                                 recommendation.main.spicy <= 3 ? '중간 매워요' : '많이 매워요';
+
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gradient-to-br from-orange-400 via-red-300 to-pink-300 p-4 md:p-8">
+                        <div class="max-w-2xl mx-auto">
+                            <div class="bg-white rounded-3xl shadow-2xl p-8 mb-6">
+                                <div class="text-center mb-8">
+                                    <div class="text-6xl mb-4">🍽️</div>
+                                    <h1 class="text-4xl font-bold text-gray-800 mb-2">오늘의 저녁 메뉴</h1>
+                                    <p class="text-gray-600">${today}</p>
+                                </div>
+
+                                <div class="space-y-6">
+                                    <div class="bg-gradient-to-r from-orange-100 to-red-100 rounded-xl p-6">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h2 class="text-xl font-bold text-orange-800 flex items-center gap-2">
+                                                👨‍🍳 오늘의 메인 메뉴
+                                            </h2>
+                                            <div class="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                                ${recommendation.score}점
+                                            </div>
+                                        </div>
+                                        <div class="bg-white rounded-lg p-4 mb-3">
+                                            <h3 class="text-3xl font-bold text-gray-800 mb-2">${recommendation.main.name}</h3>
+                                            <div class="flex flex-wrap gap-2">
+                                                <span class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                    ${recommendation.main.category}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-700 leading-relaxed">${recommendation.reason}</p>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="bg-red-50 rounded-xl p-5">
+                                            <h3 class="font-bold text-red-700 mb-2 flex items-center gap-2">
+                                                🔥 매운 정도
+                                            </h3>
+                                            <div class="flex gap-1 mb-2">
+                                                ${renderStars(recommendation.main.spicy)}
+                                            </div>
+                                            <p class="text-xs text-gray-600">${spicyText}</p>
+                                        </div>
+
+                                        <div class="bg-blue-50 rounded-xl p-5">
+                                            <h3 class="font-bold text-blue-700 mb-2 flex items-center gap-2">
+                                                ⏰ 조리 시간
+                                            </h3>
+                                            <p class="text-2xl font-bold text-blue-700">${recommendation.main.time}분</p>
+                                            <p class="text-xs text-gray-600 mt-1">예상 소요 시간</p>
+                                        </div>
+
+                                        <div class="bg-green-50 rounded-xl p-5">
+                                            <h3 class="font-bold text-green-700 mb-2 flex items-center gap-2">
+                                                👥 권장 인원
+                                            </h3>
+                                            <p class="text-2xl font-bold text-green-700">${recommendation.main.people}인분</p>
+                                            <p class="text-xs text-gray-600 mt-1">추천 인원</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-yellow-50 rounded-xl p-5">
+                                        <h3 class="font-bold text-yellow-800 mb-2 flex items-center gap-2">
+                                            🍽️ 사이드 메뉴 추천
+                                        </h3>
+                                        <div class="bg-white rounded-lg p-3">
+                                            <p class="text-xl font-bold text-gray-800">${recommendation.side.name}</p>
+                                            <p class="text-sm text-gray-600 mt-1">${recommendation.side.category}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-5">
+                                        <h3 class="font-bold text-purple-800 mb-2">💡 오늘의 팁</h3>
+                                        <p class="text-gray-700">${recommendation.tip}</p>
+                                    </div>
+
+                                    <button
+                                        onclick="handleReset()"
+                                        class="w-full bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition duration-200 flex items-center justify-center gap-2"
+                                    >
+                                        🔄 다시 추천받기
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p class="text-center text-white text-sm opacity-80">
+                                🍽️ 맛있는 저녁 되세요! 🍽️
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 초기 렌더링
+        render();
+    </script>
+</body>
+</html>
